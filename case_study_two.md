@@ -1,0 +1,771 @@
+
+
+```python
+import pandas as pd
+import xlrd
+import numpy as np
+from IPython.display import display
+pd.options.display.max_columns = None
+```
+
+
+```python
+file = 'CaseStudy2data.xlsx'
+
+# Load spreadsheet
+xl = pd.ExcelFile(file)
+
+# Load a sheet into a DataFrame by name: df1
+attrition_df = xl.parse('HR-employee-attrition Data')
+```
+
+
+```python
+#drop unneccessary columns with constant values
+attrition_df.drop('EmployeeCount', axis=1, inplace=True)
+attrition_df.drop('StandardHours', axis=1, inplace=True)
+attrition_df.drop('Over18', axis=1, inplace=True)
+attrition_df.columns.values
+
+```
+
+
+
+
+    array(['Age', 'Attrition', 'BusinessTravel', 'DailyRate', 'Department',
+           'DistanceFromHome', 'Education', 'EducationField',
+           'EmployeeNumber', 'EnvironmentSatisfaction', 'Gender',
+           'HourlyRate', 'JobInvolvement', 'JobLevel', 'JobRole',
+           'JobSatisfaction', 'MaritalStatus', 'MonthlyIncome', 'MonthlyRate',
+           'NumCompaniesWorked', 'OverTime', 'PercentSalaryHike',
+           'PerformanceRating', 'RelationshipSatisfaction',
+           'StockOptionLevel', 'TotalWorkingYears', 'TrainingTimesLastYear',
+           'WorkLifeBalance', 'YearsAtCompany', 'YearsInCurrentRole',
+           'YearsSinceLastPromotion', 'YearsWithCurrManager'], dtype=object)
+
+
+
+
+```python
+attrition_df.corr().abs()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Age</th>
+      <th>DailyRate</th>
+      <th>DistanceFromHome</th>
+      <th>Education</th>
+      <th>EmployeeNumber</th>
+      <th>EnvironmentSatisfaction</th>
+      <th>HourlyRate</th>
+      <th>JobInvolvement</th>
+      <th>JobLevel</th>
+      <th>JobSatisfaction</th>
+      <th>MonthlyIncome</th>
+      <th>MonthlyRate</th>
+      <th>NumCompaniesWorked</th>
+      <th>PercentSalaryHike</th>
+      <th>PerformanceRating</th>
+      <th>RelationshipSatisfaction</th>
+      <th>StockOptionLevel</th>
+      <th>TotalWorkingYears</th>
+      <th>TrainingTimesLastYear</th>
+      <th>WorkLifeBalance</th>
+      <th>YearsAtCompany</th>
+      <th>YearsInCurrentRole</th>
+      <th>YearsSinceLastPromotion</th>
+      <th>YearsWithCurrManager</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Age</th>
+      <td>1.000000</td>
+      <td>0.010661</td>
+      <td>0.001686</td>
+      <td>0.208034</td>
+      <td>0.010145</td>
+      <td>0.010146</td>
+      <td>0.024287</td>
+      <td>0.029820</td>
+      <td>0.509604</td>
+      <td>0.004892</td>
+      <td>0.497855</td>
+      <td>0.028051</td>
+      <td>0.299635</td>
+      <td>0.003634</td>
+      <td>0.001904</td>
+      <td>0.053535</td>
+      <td>0.037510</td>
+      <td>0.680381</td>
+      <td>0.019621</td>
+      <td>0.021490</td>
+      <td>0.311309</td>
+      <td>0.212901</td>
+      <td>0.216513</td>
+      <td>0.202089</td>
+    </tr>
+    <tr>
+      <th>DailyRate</th>
+      <td>0.010661</td>
+      <td>1.000000</td>
+      <td>0.004985</td>
+      <td>0.016806</td>
+      <td>0.050990</td>
+      <td>0.018355</td>
+      <td>0.023381</td>
+      <td>0.046135</td>
+      <td>0.002966</td>
+      <td>0.030571</td>
+      <td>0.007707</td>
+      <td>0.032182</td>
+      <td>0.038153</td>
+      <td>0.022704</td>
+      <td>0.000473</td>
+      <td>0.007846</td>
+      <td>0.042143</td>
+      <td>0.014515</td>
+      <td>0.002453</td>
+      <td>0.037848</td>
+      <td>0.034055</td>
+      <td>0.009932</td>
+      <td>0.033229</td>
+      <td>0.026363</td>
+    </tr>
+    <tr>
+      <th>DistanceFromHome</th>
+      <td>0.001686</td>
+      <td>0.004985</td>
+      <td>1.000000</td>
+      <td>0.021042</td>
+      <td>0.032916</td>
+      <td>0.016075</td>
+      <td>0.031131</td>
+      <td>0.008783</td>
+      <td>0.005303</td>
+      <td>0.003669</td>
+      <td>0.017014</td>
+      <td>0.027473</td>
+      <td>0.029251</td>
+      <td>0.040235</td>
+      <td>0.027110</td>
+      <td>0.006557</td>
+      <td>0.044872</td>
+      <td>0.004628</td>
+      <td>0.036942</td>
+      <td>0.026556</td>
+      <td>0.009508</td>
+      <td>0.018845</td>
+      <td>0.010029</td>
+      <td>0.014406</td>
+    </tr>
+    <tr>
+      <th>Education</th>
+      <td>0.208034</td>
+      <td>0.016806</td>
+      <td>0.021042</td>
+      <td>1.000000</td>
+      <td>0.042070</td>
+      <td>0.027128</td>
+      <td>0.016775</td>
+      <td>0.042438</td>
+      <td>0.101589</td>
+      <td>0.011296</td>
+      <td>0.094961</td>
+      <td>0.026084</td>
+      <td>0.126317</td>
+      <td>0.011111</td>
+      <td>0.024539</td>
+      <td>0.009118</td>
+      <td>0.018422</td>
+      <td>0.148280</td>
+      <td>0.025100</td>
+      <td>0.009819</td>
+      <td>0.069114</td>
+      <td>0.060236</td>
+      <td>0.054254</td>
+      <td>0.069065</td>
+    </tr>
+    <tr>
+      <th>EmployeeNumber</th>
+      <td>0.010145</td>
+      <td>0.050990</td>
+      <td>0.032916</td>
+      <td>0.042070</td>
+      <td>1.000000</td>
+      <td>0.017621</td>
+      <td>0.035179</td>
+      <td>0.006888</td>
+      <td>0.018519</td>
+      <td>0.046247</td>
+      <td>0.014829</td>
+      <td>0.012648</td>
+      <td>0.001251</td>
+      <td>0.012944</td>
+      <td>0.020359</td>
+      <td>0.069861</td>
+      <td>0.062227</td>
+      <td>0.014365</td>
+      <td>0.023603</td>
+      <td>0.010309</td>
+      <td>0.011240</td>
+      <td>0.008416</td>
+      <td>0.009019</td>
+      <td>0.009197</td>
+    </tr>
+    <tr>
+      <th>EnvironmentSatisfaction</th>
+      <td>0.010146</td>
+      <td>0.018355</td>
+      <td>0.016075</td>
+      <td>0.027128</td>
+      <td>0.017621</td>
+      <td>1.000000</td>
+      <td>0.049857</td>
+      <td>0.008278</td>
+      <td>0.001212</td>
+      <td>0.006784</td>
+      <td>0.006259</td>
+      <td>0.037600</td>
+      <td>0.012594</td>
+      <td>0.031701</td>
+      <td>0.029548</td>
+      <td>0.007665</td>
+      <td>0.003432</td>
+      <td>0.002693</td>
+      <td>0.019359</td>
+      <td>0.027627</td>
+      <td>0.001458</td>
+      <td>0.018007</td>
+      <td>0.016194</td>
+      <td>0.004999</td>
+    </tr>
+    <tr>
+      <th>HourlyRate</th>
+      <td>0.024287</td>
+      <td>0.023381</td>
+      <td>0.031131</td>
+      <td>0.016775</td>
+      <td>0.035179</td>
+      <td>0.049857</td>
+      <td>1.000000</td>
+      <td>0.042861</td>
+      <td>0.027853</td>
+      <td>0.071335</td>
+      <td>0.015794</td>
+      <td>0.015297</td>
+      <td>0.022157</td>
+      <td>0.009062</td>
+      <td>0.002172</td>
+      <td>0.001330</td>
+      <td>0.050263</td>
+      <td>0.002334</td>
+      <td>0.008548</td>
+      <td>0.004607</td>
+      <td>0.019582</td>
+      <td>0.024106</td>
+      <td>0.026716</td>
+      <td>0.020123</td>
+    </tr>
+    <tr>
+      <th>JobInvolvement</th>
+      <td>0.029820</td>
+      <td>0.046135</td>
+      <td>0.008783</td>
+      <td>0.042438</td>
+      <td>0.006888</td>
+      <td>0.008278</td>
+      <td>0.042861</td>
+      <td>1.000000</td>
+      <td>0.012630</td>
+      <td>0.021476</td>
+      <td>0.015271</td>
+      <td>0.016322</td>
+      <td>0.015012</td>
+      <td>0.017205</td>
+      <td>0.029071</td>
+      <td>0.034297</td>
+      <td>0.021523</td>
+      <td>0.005533</td>
+      <td>0.015338</td>
+      <td>0.014617</td>
+      <td>0.021355</td>
+      <td>0.008717</td>
+      <td>0.024184</td>
+      <td>0.025976</td>
+    </tr>
+    <tr>
+      <th>JobLevel</th>
+      <td>0.509604</td>
+      <td>0.002966</td>
+      <td>0.005303</td>
+      <td>0.101589</td>
+      <td>0.018519</td>
+      <td>0.001212</td>
+      <td>0.027853</td>
+      <td>0.012630</td>
+      <td>1.000000</td>
+      <td>0.001944</td>
+      <td>0.950300</td>
+      <td>0.039563</td>
+      <td>0.142501</td>
+      <td>0.034730</td>
+      <td>0.021222</td>
+      <td>0.021642</td>
+      <td>0.013984</td>
+      <td>0.782208</td>
+      <td>0.018191</td>
+      <td>0.037818</td>
+      <td>0.534739</td>
+      <td>0.389447</td>
+      <td>0.353885</td>
+      <td>0.375281</td>
+    </tr>
+    <tr>
+      <th>JobSatisfaction</th>
+      <td>0.004892</td>
+      <td>0.030571</td>
+      <td>0.003669</td>
+      <td>0.011296</td>
+      <td>0.046247</td>
+      <td>0.006784</td>
+      <td>0.071335</td>
+      <td>0.021476</td>
+      <td>0.001944</td>
+      <td>1.000000</td>
+      <td>0.007157</td>
+      <td>0.000644</td>
+      <td>0.055699</td>
+      <td>0.020002</td>
+      <td>0.002297</td>
+      <td>0.012454</td>
+      <td>0.010690</td>
+      <td>0.020185</td>
+      <td>0.005779</td>
+      <td>0.019459</td>
+      <td>0.003803</td>
+      <td>0.002305</td>
+      <td>0.018214</td>
+      <td>0.027656</td>
+    </tr>
+    <tr>
+      <th>MonthlyIncome</th>
+      <td>0.497855</td>
+      <td>0.007707</td>
+      <td>0.017014</td>
+      <td>0.094961</td>
+      <td>0.014829</td>
+      <td>0.006259</td>
+      <td>0.015794</td>
+      <td>0.015271</td>
+      <td>0.950300</td>
+      <td>0.007157</td>
+      <td>1.000000</td>
+      <td>0.034814</td>
+      <td>0.149515</td>
+      <td>0.027269</td>
+      <td>0.017120</td>
+      <td>0.025873</td>
+      <td>0.005408</td>
+      <td>0.772893</td>
+      <td>0.021736</td>
+      <td>0.030683</td>
+      <td>0.514285</td>
+      <td>0.363818</td>
+      <td>0.344978</td>
+      <td>0.344079</td>
+    </tr>
+    <tr>
+      <th>MonthlyRate</th>
+      <td>0.028051</td>
+      <td>0.032182</td>
+      <td>0.027473</td>
+      <td>0.026084</td>
+      <td>0.012648</td>
+      <td>0.037600</td>
+      <td>0.015297</td>
+      <td>0.016322</td>
+      <td>0.039563</td>
+      <td>0.000644</td>
+      <td>0.034814</td>
+      <td>1.000000</td>
+      <td>0.017521</td>
+      <td>0.006429</td>
+      <td>0.009811</td>
+      <td>0.004085</td>
+      <td>0.034323</td>
+      <td>0.026442</td>
+      <td>0.001467</td>
+      <td>0.007963</td>
+      <td>0.023655</td>
+      <td>0.012815</td>
+      <td>0.001567</td>
+      <td>0.036746</td>
+    </tr>
+    <tr>
+      <th>NumCompaniesWorked</th>
+      <td>0.299635</td>
+      <td>0.038153</td>
+      <td>0.029251</td>
+      <td>0.126317</td>
+      <td>0.001251</td>
+      <td>0.012594</td>
+      <td>0.022157</td>
+      <td>0.015012</td>
+      <td>0.142501</td>
+      <td>0.055699</td>
+      <td>0.149515</td>
+      <td>0.017521</td>
+      <td>1.000000</td>
+      <td>0.010238</td>
+      <td>0.014095</td>
+      <td>0.052733</td>
+      <td>0.030075</td>
+      <td>0.237639</td>
+      <td>0.066054</td>
+      <td>0.008366</td>
+      <td>0.118421</td>
+      <td>0.090754</td>
+      <td>0.036814</td>
+      <td>0.110319</td>
+    </tr>
+    <tr>
+      <th>PercentSalaryHike</th>
+      <td>0.003634</td>
+      <td>0.022704</td>
+      <td>0.040235</td>
+      <td>0.011111</td>
+      <td>0.012944</td>
+      <td>0.031701</td>
+      <td>0.009062</td>
+      <td>0.017205</td>
+      <td>0.034730</td>
+      <td>0.020002</td>
+      <td>0.027269</td>
+      <td>0.006429</td>
+      <td>0.010238</td>
+      <td>1.000000</td>
+      <td>0.773550</td>
+      <td>0.040490</td>
+      <td>0.007528</td>
+      <td>0.020608</td>
+      <td>0.005221</td>
+      <td>0.003280</td>
+      <td>0.035991</td>
+      <td>0.001520</td>
+      <td>0.022154</td>
+      <td>0.011985</td>
+    </tr>
+    <tr>
+      <th>PerformanceRating</th>
+      <td>0.001904</td>
+      <td>0.000473</td>
+      <td>0.027110</td>
+      <td>0.024539</td>
+      <td>0.020359</td>
+      <td>0.029548</td>
+      <td>0.002172</td>
+      <td>0.029071</td>
+      <td>0.021222</td>
+      <td>0.002297</td>
+      <td>0.017120</td>
+      <td>0.009811</td>
+      <td>0.014095</td>
+      <td>0.773550</td>
+      <td>1.000000</td>
+      <td>0.031351</td>
+      <td>0.003506</td>
+      <td>0.006744</td>
+      <td>0.015579</td>
+      <td>0.002572</td>
+      <td>0.003435</td>
+      <td>0.034986</td>
+      <td>0.017896</td>
+      <td>0.022827</td>
+    </tr>
+    <tr>
+      <th>RelationshipSatisfaction</th>
+      <td>0.053535</td>
+      <td>0.007846</td>
+      <td>0.006557</td>
+      <td>0.009118</td>
+      <td>0.069861</td>
+      <td>0.007665</td>
+      <td>0.001330</td>
+      <td>0.034297</td>
+      <td>0.021642</td>
+      <td>0.012454</td>
+      <td>0.025873</td>
+      <td>0.004085</td>
+      <td>0.052733</td>
+      <td>0.040490</td>
+      <td>0.031351</td>
+      <td>1.000000</td>
+      <td>0.045952</td>
+      <td>0.024054</td>
+      <td>0.002497</td>
+      <td>0.019604</td>
+      <td>0.019367</td>
+      <td>0.015123</td>
+      <td>0.033493</td>
+      <td>0.000867</td>
+    </tr>
+    <tr>
+      <th>StockOptionLevel</th>
+      <td>0.037510</td>
+      <td>0.042143</td>
+      <td>0.044872</td>
+      <td>0.018422</td>
+      <td>0.062227</td>
+      <td>0.003432</td>
+      <td>0.050263</td>
+      <td>0.021523</td>
+      <td>0.013984</td>
+      <td>0.010690</td>
+      <td>0.005408</td>
+      <td>0.034323</td>
+      <td>0.030075</td>
+      <td>0.007528</td>
+      <td>0.003506</td>
+      <td>0.045952</td>
+      <td>1.000000</td>
+      <td>0.010136</td>
+      <td>0.011274</td>
+      <td>0.004129</td>
+      <td>0.015058</td>
+      <td>0.050818</td>
+      <td>0.014352</td>
+      <td>0.024698</td>
+    </tr>
+    <tr>
+      <th>TotalWorkingYears</th>
+      <td>0.680381</td>
+      <td>0.014515</td>
+      <td>0.004628</td>
+      <td>0.148280</td>
+      <td>0.014365</td>
+      <td>0.002693</td>
+      <td>0.002334</td>
+      <td>0.005533</td>
+      <td>0.782208</td>
+      <td>0.020185</td>
+      <td>0.772893</td>
+      <td>0.026442</td>
+      <td>0.237639</td>
+      <td>0.020608</td>
+      <td>0.006744</td>
+      <td>0.024054</td>
+      <td>0.010136</td>
+      <td>1.000000</td>
+      <td>0.035662</td>
+      <td>0.001008</td>
+      <td>0.628133</td>
+      <td>0.460365</td>
+      <td>0.404858</td>
+      <td>0.459188</td>
+    </tr>
+    <tr>
+      <th>TrainingTimesLastYear</th>
+      <td>0.019621</td>
+      <td>0.002453</td>
+      <td>0.036942</td>
+      <td>0.025100</td>
+      <td>0.023603</td>
+      <td>0.019359</td>
+      <td>0.008548</td>
+      <td>0.015338</td>
+      <td>0.018191</td>
+      <td>0.005779</td>
+      <td>0.021736</td>
+      <td>0.001467</td>
+      <td>0.066054</td>
+      <td>0.005221</td>
+      <td>0.015579</td>
+      <td>0.002497</td>
+      <td>0.011274</td>
+      <td>0.035662</td>
+      <td>1.000000</td>
+      <td>0.028072</td>
+      <td>0.003569</td>
+      <td>0.005738</td>
+      <td>0.002067</td>
+      <td>0.004096</td>
+    </tr>
+    <tr>
+      <th>WorkLifeBalance</th>
+      <td>0.021490</td>
+      <td>0.037848</td>
+      <td>0.026556</td>
+      <td>0.009819</td>
+      <td>0.010309</td>
+      <td>0.027627</td>
+      <td>0.004607</td>
+      <td>0.014617</td>
+      <td>0.037818</td>
+      <td>0.019459</td>
+      <td>0.030683</td>
+      <td>0.007963</td>
+      <td>0.008366</td>
+      <td>0.003280</td>
+      <td>0.002572</td>
+      <td>0.019604</td>
+      <td>0.004129</td>
+      <td>0.001008</td>
+      <td>0.028072</td>
+      <td>1.000000</td>
+      <td>0.012089</td>
+      <td>0.049856</td>
+      <td>0.008941</td>
+      <td>0.002759</td>
+    </tr>
+    <tr>
+      <th>YearsAtCompany</th>
+      <td>0.311309</td>
+      <td>0.034055</td>
+      <td>0.009508</td>
+      <td>0.069114</td>
+      <td>0.011240</td>
+      <td>0.001458</td>
+      <td>0.019582</td>
+      <td>0.021355</td>
+      <td>0.534739</td>
+      <td>0.003803</td>
+      <td>0.514285</td>
+      <td>0.023655</td>
+      <td>0.118421</td>
+      <td>0.035991</td>
+      <td>0.003435</td>
+      <td>0.019367</td>
+      <td>0.015058</td>
+      <td>0.628133</td>
+      <td>0.003569</td>
+      <td>0.012089</td>
+      <td>1.000000</td>
+      <td>0.758754</td>
+      <td>0.618409</td>
+      <td>0.769212</td>
+    </tr>
+    <tr>
+      <th>YearsInCurrentRole</th>
+      <td>0.212901</td>
+      <td>0.009932</td>
+      <td>0.018845</td>
+      <td>0.060236</td>
+      <td>0.008416</td>
+      <td>0.018007</td>
+      <td>0.024106</td>
+      <td>0.008717</td>
+      <td>0.389447</td>
+      <td>0.002305</td>
+      <td>0.363818</td>
+      <td>0.012815</td>
+      <td>0.090754</td>
+      <td>0.001520</td>
+      <td>0.034986</td>
+      <td>0.015123</td>
+      <td>0.050818</td>
+      <td>0.460365</td>
+      <td>0.005738</td>
+      <td>0.049856</td>
+      <td>0.758754</td>
+      <td>1.000000</td>
+      <td>0.548056</td>
+      <td>0.714365</td>
+    </tr>
+    <tr>
+      <th>YearsSinceLastPromotion</th>
+      <td>0.216513</td>
+      <td>0.033229</td>
+      <td>0.010029</td>
+      <td>0.054254</td>
+      <td>0.009019</td>
+      <td>0.016194</td>
+      <td>0.026716</td>
+      <td>0.024184</td>
+      <td>0.353885</td>
+      <td>0.018214</td>
+      <td>0.344978</td>
+      <td>0.001567</td>
+      <td>0.036814</td>
+      <td>0.022154</td>
+      <td>0.017896</td>
+      <td>0.033493</td>
+      <td>0.014352</td>
+      <td>0.404858</td>
+      <td>0.002067</td>
+      <td>0.008941</td>
+      <td>0.618409</td>
+      <td>0.548056</td>
+      <td>1.000000</td>
+      <td>0.510224</td>
+    </tr>
+    <tr>
+      <th>YearsWithCurrManager</th>
+      <td>0.202089</td>
+      <td>0.026363</td>
+      <td>0.014406</td>
+      <td>0.069065</td>
+      <td>0.009197</td>
+      <td>0.004999</td>
+      <td>0.020123</td>
+      <td>0.025976</td>
+      <td>0.375281</td>
+      <td>0.027656</td>
+      <td>0.344079</td>
+      <td>0.036746</td>
+      <td>0.110319</td>
+      <td>0.011985</td>
+      <td>0.022827</td>
+      <td>0.000867</td>
+      <td>0.024698</td>
+      <td>0.459188</td>
+      <td>0.004096</td>
+      <td>0.002759</td>
+      <td>0.769212</td>
+      <td>0.714365</td>
+      <td>0.510224</td>
+      <td>1.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+Based off looking at the correlation matrix above, there are not any values that stand out as extremly correlated (0.8). Thus no variables will be removed.
+
+
+```python
+values = attrition_df.values
+values[:,0:2]
+values[:,2]
+```
+
+
+
+
+    array(['Travel_Rarely', 'Travel_Frequently', 'Travel_Rarely', ...,
+           'Travel_Rarely', 'Travel_Frequently', 'Travel_Rarely'],
+          dtype=object)
+
+
