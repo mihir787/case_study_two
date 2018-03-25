@@ -11,6 +11,9 @@ jupyter = "*"
 pandas = "*"
 xlrd = "*"
 numpy = "*"
+sklearn = "*"
+scipy = "*"
+scikit-learn = "*"
 
 
 [dev-packages]
