@@ -1,0 +1,121 @@
+---
+title: "CaseStudy2"
+author: Mihir Parikh, Lokesh Maganti, Aaron Tomkins
+output: html_document
+---
+
+# Pre-process the data.
+The main steps we took in cleaning the data was to remove the columns that behaved like constants (i.e., they had the same value for all observations), and transform columns into factors that were incorrectly imported as character data types.
+
+We also split our data into training and test sets (using a 80/20 split) in order to test the accuracy of various models that were utilized.
+```{r, echo=TRUE}
+library(tidyverse)
+
+# --- Import data.
+library(readxl)
+df <- read_xlsx("/Users/aarontomkins/Desktop/SMU_Data_Science/MSDS_6306_Doing_Data_Science/Data_Files/CaseStudy2data.xlsx", col_names = TRUE)
+
+# --- Transform data.
+# Transform character types to factors.
+df <- cbind(df[,-c(2,3,5,8,12,16,18,22,23)],lapply(df[,c(2,3,5,8,12,16,18,22,23)], as.factor))
+# Create X matrix by removing the response, employee number, over 18 (factor with 1 level). We also removed
+# employee count and standard hours for having constant values.
+X.df <- df[,-c(5,6,18,27,34)]
+# Create y vector.
+y.df <- as.factor(df$Attrition)
+# Combine these two for functions that require the full data frame. Then rename the response column.
+df.new <- cbind(X.df, y.df)
+names(df.new)[names(df.new) == 'y.df'] <- 'Attrition'
+
+# --- Split data into training and test sets.
+set.seed(5)
+train <- sample(1:dim(X.df)[1], dim(X.df)[1]*0.8)
+test <- -train
+```
+
+# Python version.
+See our additional Python script for other ways we applied random forest and looked at the data.
+
+# Fit a random forest model.
+The four most important factors in predicting employee attrition per our random forest model are:
+1. MonthlyIncome
+2. Age
+3. Overtime
+4. DailyRate
+
+Our random forest model also had 100% accuracy on the test set, which supports the fact that these four explanatory variables can definitely contribute to accurately predicting employee attrition (for comparison, the naive method of always predicting the majority class would lead to accuracy of 84.69%).
+```{r, echo=TRUE}
+# *** Random Forest ***
+library(randomForest)
+
+attr.rfor <- randomForest(X.df, y.df, mtry = ceiling(sqrt(dim(X.df)[2])), subset = train)
+importance(attr.rfor)
+
+# Calculate accuracy. Accuracy is 100%.
+rfor.predict <- predict(attr.rfor, df.new[test,])
+sum(rfor.predict == df.new$Attrition[test])/length(df.new$Attrition[test])
+
+```
+
+# Fit a logistic regression model.
+Since random forest models do not provide p-values or coefficients, we tried fitting a logistic regression model to provide a little more interpretability. However, this model identified different variables as being important than our random forest model. The six most important variables (that were also statistically significant) from the logistic regression model were:
+1. OverTime
+2. BusinessTravel_Frequently
+3. JobInvolvement
+4. EnvironmentSatisfaction
+5. JobSatsifaction
+6. RelationshipSatisfaction.
+
+The reason the variables that were identified as important through logistic regression were different from the random forest is due to different assumptions about the structure of the data when using logistic regression. The logistic regression model we applied assumes linearity, constant variance, independence, and also had no interaction terms.
+
+In order to see which model more accurately represents the data, we calculate the accuracy of our logistic regression model on our test set and got 88.44% accuracy. Since this is lower than our random forest model, we would put more weight on the variables identified from our random forest model and conclude that some of the regression assumptions were violated. We can create a more advanced logistic regression model that corrects for some of these issues in the future if deemed necessary.
+```{r, echo=TRUE}
+# *** Logistic Regression ***
+
+attr.logi <- glm(Attrition ~ ., family = binomial, data = df.new, subset = train)
+summary(attr.logi)
+
+# Data frame of the most important variables.
+Variable_Name <- c('OverTime','BusinessTravel_Freq','JobInvolvement','EnvironSatisfaction','JobSatisfaction','RelationshipSatisfaction')
+Variable_Coef <- c(1.86, 1.70, abs(-0.678), abs(-0.521), abs(-0.383), abs(-0.320))
+logi.df <- data.frame(cbind(Variable_Name, Variable_Coef))
+logi.df <- transform(logi.df, Variable_Name = reorder(Variable_Name, order(Variable_Coef, decreasing = FALSE)))
+
+# Plot the important variables.
+ggplot(data = logi.df) + geom_bar(mapping = aes(x = Variable_Name, y = Variable_Coef, fill = Variable_Name), stat = "identity") + ggtitle("Most Important Variables from Logistic Regression") + theme(plot.title = element_text(hjust = 0.5)) + labs(x = "Variable Name", y = "Coefficient (Absolute Value)") + coord_flip()
+
+# Calculate accuracy.
+logi.pred <- predict(attr.logi, df.new[test,], type = "response")
+logi.newpred <- rep("No", length(df.new$Attrition[test]))
+logi.newpred[logi.pred > 0.60] = "Yes"
+# Accuracy is 88.44% (the naive method has accuracy of 84.69%).
+sum(logi.newpred == df.new$Attrition[test])/length(df.new$Attrition[test])
+
+```
+
+# Fit a linear discriminant analysis model.
+Since our logistic regression model did not identify the same significant variables as the random forest model, we instead turned to a linear discriminant analysis model in order to look at how the variables identified in the random forest model differ between employees that left and those that stayed within the company (the probability of the X, given Y). Per LDA (and Naive Bayes), if the mean of an explanatory variable is very different between the response categories, then that explanatory variable can be useful for predicting the response. A table of the different means of the variables identified from our random forest does show that they differ considerably between employees that left and those that stayed (see table below).
+
+Since LDA assumes that the explanatory variables are normally-distributed, however, we do not believe it will be accurate in its predictions (since there are many categorical variables in our model, and variables that are dummy encoded in a binary way are not Gaussian). And as expected, our LDA model had accuracy of 87.07% of our test set (lower than the logistic regression model).
+```{r, echo=TRUE}
+# *** Linear Discriminant Analysis ***
+library(MASS)
+
+attr.lda <- lda(Attrition ~ ., data = df.new, subset = train)
+attr.lda$means
+
+# Data frame of the important variables from the random forest.
+val.lda <- c('MonthlyIncome','Age','OverTime','DailyRate')
+noavg.lda <- c(6869.48, 37.65, 0.24, 811.29)
+yesavg.lda <- c(4720.71, 33.58, 0.52, 750.63)
+lda.df <- data.frame(cbind(val.lda, noavg.lda, yesavg.lda))
+names(lda.df) <- c('Variable','Avg Stay','Avg Leave')
+lda.df
+
+# Calculate accuracy.
+lda.pred <- predict(attr.lda, df.new[test,])
+# Accuracy is 87.07% (the naive method has accuracy of 84.69%).
+sum(lda.pred$class == df.new$Attrition[test])/length(df.new$Attrition[test])
+
+```
+
