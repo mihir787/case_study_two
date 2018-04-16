@@ -85,6 +85,7 @@ df_without_attrition = attrition_df.drop("Attrition", axis=1)
 columns_without_attrition = df_without_attrition.columns
 columns_with_attrition = attrition_df.columns
 
+# split test and train set
 rand = np.random.rand(len(attrition_df)) < 0.8
 
 train = attrition_df[rand]
@@ -96,6 +97,7 @@ test = attrition_df[~rand]
 
 
 ```pheatmap
+# provide squares for correlation heatplot for values above +/- .6
 plt.figure(figsize = (20,20))
 corr = attrition_df.corr()
 sns.heatmap(corr[(corr >= 0.6) | (corr <= -0.6)], 
@@ -471,8 +473,12 @@ sum(lda.pred$class == df.new$Attrition[test])/length(df.new$Attrition[test])
 ```
 
 ### In Python
+*Note that only 2 of many attempted models are displayed here. For more insights on some of the other models considered please look at case_study_two.md*
 
 #### Extra Tree Classifier Model
+
+This modeling technique is similar to Random Forrest except for the fact that random splits are tested as opposed to all possible splits. Extratrees are hence cheaper to train and can sometimes end up generalizing better.
+
 
 ```pextratreeclassifier
 from sklearn.ensemble import ExtraTreesClassifier
@@ -531,7 +537,7 @@ In order of most important features:
 
 <center><h1>Interesting Trends - In Python</h1></center>
 
-An analysis of trends in job roles, attrition, and some other factors that were commonly featured in the models above.
+An analysis of trends in job roles, attrition, and other factors that were commonly featured in the models above.
 
 #### YearsSinceLastPromotion and YearsInCurrentRole
 
@@ -541,23 +547,28 @@ sns.barplot(x="YearsSinceLastPromotion", y="JobRole", data=unchanged_attrition_d
 ```
 ![](case_study_two_files/case_study_two_23_1.png)
 
+There seems to be a significant higher average YearSinceLastPromotion for people with roles that are Managerial or Executive.
+
 
 ```pyearssincelastpromvrolewattrition
 sns.barplot(x="YearsSinceLastPromotion", y="JobRole",hue= "Attrition", data=unchanged_attrition_df)
 ```
 ![](case_study_two_files/case_study_two_24_1.png)
+Research directors who have left their positions have an average of nearly 14 YearsSinceLastPromotion which is significantly greater than directors who are still in their position. Directorship positions often tend to be condsidered as very high position which may not result in promotions as often, it is important to consider high position roles for promotions on regular interval to more effectively maintain Research Directors.
 
 
 ```pyearsincurrentrole
 sns.barplot(x="YearsInCurrentRole", y="JobRole", data=unchanged_attrition_df)
 ```
 ![](case_study_two_files/case_study_two_25_1.png)
+Higher level positions tend to have greater YearsInCurrentRoles as opposed to more junior to mid-level positions.
 
 
 ```pyearsincurrentrolewattrition
 sns.barplot(x="YearsInCurrentRole", y="JobRole", hue= "Attrition", data=unchanged_attrition_df)
 ```
 ![](case_study_two_files/case_study_two_26_1.png)
+This relationship is similar to YearsSinceLastPromotion except that Managers are also considered as higher risk to leave when staying in the same role.
 
 #### DistanceFromHome
 
@@ -572,8 +583,10 @@ sns.barplot(x="DistanceFromHome", y="JobRole", data=unchanged_attrition_df)
 ```pdistancefromhomewattrition
 sns.barplot(x="DistanceFromHome", y="JobRole", hue= "Attrition", data=unchanged_attrition_df)
 ```
+There is no relationship between job role and distance from home.
 
 ![](case_study_two_files/case_study_two_29_1.png)
+However, there is a trend that greater the distance from home the more likely someone is going to leave their job. It is evident in some positions more than others.
 
 #### NumCompaniesWorked
 
@@ -591,6 +604,7 @@ sns.barplot(x="NumCompaniesWorked", y="JobRole", hue="Attrition", data=unchanged
 ```
 
 ![](case_study_two_files/case_study_two_31_1.png)
+Sales executives who leave tend to work for nearly an average of two more companies that their counterparts who remain.
 
 #### EnvironmentSatisfaction
 
@@ -608,7 +622,7 @@ sns.barplot(x="EnvironmentSatisfaction", y="JobRole",hue= "Attrition", data=unch
 ```
 
 ![](case_study_two_files/case_study_two_33_1.png)
-
+People who leave tend to have less environment satisfaction than their counterparts who stay.
 
 #### Overtime
 
@@ -618,7 +632,7 @@ sns.countplot(y="OverTime", hue="Attrition", data=unchanged_attrition_df)
 ```
 
 ![](case_study_two_files/case_study_two_34_1.png)
-
+The overall ratio of people who left their job that worked overtime was significantly larger than the ration of people who did not leave their jobs.
 
 
 ```pjobroleovertimewattrition
@@ -626,6 +640,7 @@ sns.countplot(y="JobRole", hue="OverTime", data=unchanged_attrition_df)
 ```
 
 ![](case_study_two_files/case_study_two_35_1.png)
+The ratio of people who work overtime regardless of their roles is much higher than their attrition rate by their role alone.
 
 #### Age
 
