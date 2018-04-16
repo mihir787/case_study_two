@@ -129,6 +129,15 @@ plt.show()
 This is a look at the number of people in each Job Role.
 
 
+```pjobroleattritioncounts
+sns.countplot(y="JobRole", hue="Attrition", data=unchanged_attrition_df)
+plt.show()
+```
+![](case_study_two_files/case_study_two_22_1.png)
+
+A look at the ratio of attrition for each Job Role.
+
+
 ```pmonthlyincomebyrolecounts
 income = unchanged_attrition_df.groupby('JobRole').mean()[['MonthlyIncome']].values
 flattened_income = []
@@ -366,7 +375,7 @@ logi.df <- transform(logi.df, Variable_Name = reorder(Variable_Name, order(Varia
 ggplot(data = logi.df) + geom_bar(mapping = aes(x = Variable_Name, y = Variable_Coef, fill = Variable_Name), stat = "identity") + ggtitle("Most Important Variables from Logistic Regression") + theme(plot.title = element_text(hjust = 0.5)) + labs(x = "Variable Name", y = "Coefficient (Absolute Value)") + coord_flip()
 ```
 
-![](CaseStudy2_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](CaseStudy2_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 # Calculate accuracy.
@@ -652,7 +661,6 @@ sns.barplot(x="Age", y="Attrition", data=unchanged_attrition_df)
 ![](case_study_two_files/case_study_two_36_1.png)
 
 
-
 ```pagejobrole
 sns.barplot(x="Age", y="JobRole", data=unchanged_attrition_df)
 ```
@@ -666,3 +674,5 @@ sns.barplot(x="Age", y="JobRole", hue="Attrition", data=unchanged_attrition_df)
 ```
 
 ![](case_study_two_files/case_study_two_38_1.png)
+
+There is a trend that attrition is more likely for younger people however, those age trends are not as apparent based off role. Roles such as Research Directors have a higher average age for people who left their job while in Human resources the trend is the opposite.
