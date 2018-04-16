@@ -99,8 +99,7 @@ train = attrition_df[rand]
 test = attrition_df[~rand]
 ```
 
-<center><h1>Exploratory Data Analysis</h1></center>
-*Conducted in Python*
+<center><h1>Exploratory Data Analysis - Python</h1></center>
 
 
 ```pheatmap
