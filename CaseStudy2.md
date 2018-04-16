@@ -14,7 +14,14 @@ library(readxl)
 library(randomForest)
 ```
 
-# Context on Process
+<center><h1>Introduction</h1></center>
+
+DDSAnalytics is an analytics company that specializes in talent management solutions for Fortune 1000 companies. Talent management is defined as the iterative process of developing and retaining employees. It may include workforce planning, employee training programs, identifying high-potential employees and reducing/preventing voluntary employee turnover (attrition). To gain a competitive edge over its competition, DDSAnalytics decided to leverage data science for talent management. The executive leadership identified predicting employee turnover as its first application of data science for talent management. Before the business green lights the project, they tasked the data science team to conduct an analysis of existing employee data. The scope of this report is to summarize those findings.
+
+To conduct exploratory data analysis (EDA), the data science team was provided with CaseStudy2Data.zip file to determine factors that lead to attrition. From this data, the team was asked to identify (at least) the top three factors that contribute to turnover, to learn about any job role specific trends that may exist in the data set (e.g., "Data Scientists have the highest job satisfaction") and to provide any other interesting trends and observations. All the Experiments and analysis were conducted in R.
+
+<center><h1>Context on Process</h1></center>
+
 The analysis and modeling was done both in R and Python which interms provides interesting insights as to how language specific packages yield potentially different different models. To view the executed python code please look at case_study_two.md. The python code here is not executed but the output is provided.
 
 <center><h1>Pre-Process Data</h1></center>
@@ -544,6 +551,9 @@ In order of most important features:
 4. NumCompaniesWorked | 
 5. Overtime
 
+#### Most Influential Factors
+The Extratree classifier model (conducted in Python) and the Random Forrest model (conducted in R) both presented Overtime, Age, and MonthlyIncome as the top three most influential features.
+
 <center><h1>Interesting Trends - In Python</h1></center>
 
 An analysis of trends in job roles, attrition, and other factors that were commonly featured in the models above.
@@ -563,6 +573,7 @@ There seems to be a significant higher average YearSinceLastPromotion for people
 sns.barplot(x="YearsSinceLastPromotion", y="JobRole",hue= "Attrition", data=unchanged_attrition_df)
 ```
 ![](case_study_two_files/case_study_two_24_1.png)
+
 Research directors who have left their positions have an average of nearly 14 YearsSinceLastPromotion which is significantly greater than directors who are still in their position. Directorship positions often tend to be condsidered as very high position which may not result in promotions as often, it is important to consider high position roles for promotions on regular interval to more effectively maintain Research Directors.
 
 
@@ -570,6 +581,7 @@ Research directors who have left their positions have an average of nearly 14 Ye
 sns.barplot(x="YearsInCurrentRole", y="JobRole", data=unchanged_attrition_df)
 ```
 ![](case_study_two_files/case_study_two_25_1.png)
+
 Higher level positions tend to have greater YearsInCurrentRoles as opposed to more junior to mid-level positions.
 
 
@@ -577,6 +589,7 @@ Higher level positions tend to have greater YearsInCurrentRoles as opposed to mo
 sns.barplot(x="YearsInCurrentRole", y="JobRole", hue= "Attrition", data=unchanged_attrition_df)
 ```
 ![](case_study_two_files/case_study_two_26_1.png)
+
 This relationship is similar to YearsSinceLastPromotion except that Managers are also considered as higher risk to leave when staying in the same role.
 
 #### DistanceFromHome
@@ -585,16 +598,16 @@ This relationship is similar to YearsSinceLastPromotion except that Managers are
 ```pdistancefromhome
 sns.barplot(x="DistanceFromHome", y="JobRole", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_28_1.png)
+
+There is no relationship between job role and distance from home.
 
 
 ```pdistancefromhomewattrition
 sns.barplot(x="DistanceFromHome", y="JobRole", hue= "Attrition", data=unchanged_attrition_df)
 ```
-There is no relationship between job role and distance from home.
-
 ![](case_study_two_files/case_study_two_29_1.png)
+
 However, there is a trend that greater the distance from home the more likely someone is going to leave their job. It is evident in some positions more than others.
 
 #### NumCompaniesWorked
@@ -603,7 +616,6 @@ However, there is a trend that greater the distance from home the more likely so
 ```pnumcompaniesworked
 sns.barplot(x="NumCompaniesWorked", y="JobRole", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_30_1.png)
 
 
@@ -611,8 +623,8 @@ sns.barplot(x="NumCompaniesWorked", y="JobRole", data=unchanged_attrition_df)
 ```numcompaniesworkedwattrition
 sns.barplot(x="NumCompaniesWorked", y="JobRole", hue="Attrition", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_31_1.png)
+
 Sales executives who leave tend to work for nearly an average of two more companies that their counterparts who remain.
 
 #### EnvironmentSatisfaction
@@ -621,7 +633,6 @@ Sales executives who leave tend to work for nearly an average of two more compan
 ```penvironmentsatisfaction
 sns.barplotsns.barplot(x="EnvironmentSatisfaction", y="JobRole", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_32_1.png)
 
 
@@ -629,8 +640,8 @@ sns.barplotsns.barplot(x="EnvironmentSatisfaction", y="JobRole", data=unchanged_
 ```penvironmentsatisfactionwattrition
 sns.barplot(x="EnvironmentSatisfaction", y="JobRole",hue= "Attrition", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_33_1.png)
+
 People who leave tend to have less environment satisfaction than their counterparts who stay.
 
 #### Overtime
@@ -639,16 +650,16 @@ People who leave tend to have less environment satisfaction than their counterpa
 ```povertimeattrition
 sns.countplot(y="OverTime", hue="Attrition", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_34_1.png)
-The overall ratio of people who left their job that worked overtime was significantly larger than the ration of people who did not leave their jobs.
+
+The overall ratio of people who left their job that worked overtime was significantly larger than the ratio of people who did not leave their jobs.
 
 
 ```pjobroleovertimewattrition
 sns.countplot(y="JobRole", hue="OverTime", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_35_1.png)
+
 The ratio of people who work overtime regardless of their roles is much higher than their attrition rate by their role alone.
 
 #### Age
@@ -664,7 +675,6 @@ sns.barplot(x="Age", y="Attrition", data=unchanged_attrition_df)
 ```pagejobrole
 sns.barplot(x="Age", y="JobRole", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_37_1.png)
 
 
@@ -672,7 +682,10 @@ sns.barplot(x="Age", y="JobRole", data=unchanged_attrition_df)
 ```pagejoberolewattrition
 sns.barplot(x="Age", y="JobRole", hue="Attrition", data=unchanged_attrition_df)
 ```
-
 ![](case_study_two_files/case_study_two_38_1.png)
 
 There is a trend that attrition is more likely for younger people however, those age trends are not as apparent based off role. Roles such as Research Directors have a higher average age for people who left their job while in Human resources the trend is the opposite.
+
+<center><h1>Executive Summary</h1></center>
+
+There are three reliable factors that impact attrition: Overtime, Age, and Monthly Income. Greater Overtime requirements, younger employees, and low monthly incomes contribute significantly to attrition. Other factors such as Environment Satisfaction, Number of Companies Worked For, and Job Satisfaction can also be more minor contributors to job attrition. As executives, there are a few next steps we recommend you take. First, if more data can be acquired then we can build a stronger model. Currently, we have a strong sense of the top three contributing factors but we would like to get a better sense of the top five to ten factors. Secondly, location based data would be very beneficial for providing more insight into geographical areas, which would allow for more targeted strategies. Lastly, if we can get more data then we can more confidently address some of the less influential factors and see how attrition is impacted. For example, factors such as Job Involvement and Years In Current Role can be easier fixes than increasing Monthly Income. If we can build a stronger model that can expose factors which can be "easier wins" then those can be prioritized first.
