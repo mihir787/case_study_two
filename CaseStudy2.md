@@ -15,11 +15,11 @@ library(randomForest)
 ```
 
 # Context on Process
-The analysis and modeling was done both in R and Python which interms provides interesting insights as to how language specific packages yield potentially different different models.
+The analysis and modeling was done both in R and Python which interms provides interesting insights as to how language specific packages yield potentially different different models. To view the executed python code please look at case_study_two.md. The python code here is not executed but the output is provided.
 
-# Pre-process the data
+<center><h1>Pre-Process Data</h1></center>
 
-## In R
+### In R
 
 The main steps we took in cleaning the data was to remove the columns that behaved like constants (i.e., they had the same value for all observations), and transform columns into factors that were incorrectly imported as character data types.
 
@@ -54,7 +54,7 @@ train <- sample(1:dim(X.df)[1], dim(X.df)[1]*0.8)
 test <- -train
 ```
 
-## In Python
+### In Python
 
 
 ```pcleanup
@@ -91,9 +91,9 @@ train = attrition_df[rand]
 test = attrition_df[~rand]
 ```
 
-# Data Exploration
+<center><h1>Exploratory Data Analysis</h1></center>
+*Conducted in Python*
 
-## All Conducted in Python
 
 ```pheatmap
 plt.figure(figsize = (20,20))
@@ -153,9 +153,12 @@ plt.show()
 
 This is a look at the Average Monthly Income of respective Job Roles.
 
-# Modeling
+<center><h1>Modeling - Determine Most Influential Factors</h1></center>
 
-# Fit a random forest model.
+### In R
+
+#### Random Forrest Model
+
 The four most important factors in predicting employee attrition per our random forest model are:
 1. MonthlyIncome
 2. Age
@@ -214,7 +217,8 @@ sum(rfor.predict == df.new$Attrition[test])/length(df.new$Attrition[test])
 ## [1] 1
 ```
 
-# Fit a logistic regression model.
+#### Logistic Regression Model
+
 Since random forest models do not provide p-values or coefficients, we tried fitting a logistic regression model to provide a little more interpretability. However, this model identified different variables as being important than our random forest model. The six most important variables (that were also statistically significant) from the logistic regression model were:
 1. OverTime
 2. BusinessTravel_Frequently
@@ -375,7 +379,7 @@ sum(logi.newpred == df.new$Attrition[test])/length(df.new$Attrition[test])
 ## [1] 0.8843537
 ```
 
-# Fit a linear discriminant analysis model.
+#### Linear Discriminant Analysis Model (LDA)
 Since our logistic regression model did not identify the same significant variables as the random forest model, we instead turned to a linear discriminant analysis model in order to look at how the variables identified in the random forest model differ between employees that left and those that stayed within the company (the probability of the X, given Y). Per LDA (and Naive Bayes), if the mean of an explanatory variable is very different between the response categories, then that explanatory variable can be useful for predicting the response. A table of the different means of the variables identified from our random forest does show that they differ considerably between employees that left and those that stayed (see table below).
 
 Since LDA assumes that the explanatory variables are normally-distributed, however, we do not believe it will be accurate in its predictions (since there are many categorical variables in our model, and variables that are dummy encoded in a binary way are not Gaussian). And as expected, our LDA model had accuracy of 87.07% of our test set (lower than the logistic regression model).
@@ -466,3 +470,184 @@ sum(lda.pred$class == df.new$Attrition[test])/length(df.new$Attrition[test])
 ## [1] 0.8707483
 ```
 
+### In Python
+
+#### Extra Tree Classifier Model
+
+```pextratreeclassifier
+from sklearn.ensemble import ExtraTreesClassifier
+# feature extraction
+model = ExtraTreesClassifier()
+fit = model.fit(X, Y)
+
+importances = model.feature_importances_
+print(importances)
+
+idxs = np.argsort(importances)[-(number_of_features_to_select):]
+features = np.asarray(columns_without_attrition[idxs])
+print(list(reversed(features.tolist())))
+
+predictions = model.predict(X_test)
+print('Accuracy of extra trees classifier on test set: {:.5f}'.format(model.score(X_test, Y_test)))
+```
+
+![](screenshots/extraTree.png)
+
+In order of most important features:
+1. OverTime |
+2. Age |
+3. MontlyIncome |
+4. JobSatisfaction |
+5. EnvironmentSatisfaction
+
+#### Logistic Regression Model
+
+```plogisticregression
+warnings.filterwarnings('ignore')
+
+logreg = LogisticRegression()
+logreg.fit(X, Y)
+
+y_pred = logreg.predict(X_test)
+print('Accuracy of logistic regression classifier on test set: {:.5f}'.format(logreg.score(X_test, Y_test)))
+
+denom = (2.0*(1.0+np.cosh(logreg.decision_function(X))))
+F_ij = np.dot((X/denom[:,None]).T,X) ## Fisher Information Matrix
+Cramer_Rao = np.linalg.inv(F_ij) ## Inverse Information Matrix
+sigma_estimates = np.array([np.sqrt(Cramer_Rao[i,i]) for i in range(Cramer_Rao.shape[0])]) # sigma for each coefficient
+z_scores = logreg.coef_[0]/sigma_estimates # z-score for eaach model coefficient
+p_values = [stat.norm.sf(abs(x))*2 for x in z_scores] ### two tailed test for p-values
+
+print(sorted(list(zip(p_values, columns_without_attrition)))[:5])
+```
+**Accuracy of logistic regression classifier on test set: 0.85616**
+![](screenshots/logistic.png)
+In order of most important features:
+1. DistanceFromHome |
+2. EnvironmentSatisfaction | 
+3. JobSatisfaction | 
+4. NumCompaniesWorked | 
+5. Overtime
+
+<center><h1>Interesting Trends - In Python</h1></center>
+
+An analysis of trends in job roles, attrition, and some other factors that were commonly featured in the models above.
+
+#### YearsSinceLastPromotion and YearsInCurrentRole
+
+
+```pyearssincelastpromvrole
+sns.barplot(x="YearsSinceLastPromotion", y="JobRole", data=unchanged_attrition_df)
+```
+![](case_study_two_files/case_study_two_23_1.png)
+
+
+```pyearssincelastpromvrolewattrition
+sns.barplot(x="YearsSinceLastPromotion", y="JobRole",hue= "Attrition", data=unchanged_attrition_df)
+```
+![](case_study_two_files/case_study_two_24_1.png)
+
+
+```pyearsincurrentrole
+sns.barplot(x="YearsInCurrentRole", y="JobRole", data=unchanged_attrition_df)
+```
+![](case_study_two_files/case_study_two_25_1.png)
+
+
+```pyearsincurrentrolewattrition
+sns.barplot(x="YearsInCurrentRole", y="JobRole", hue= "Attrition", data=unchanged_attrition_df)
+```
+![](case_study_two_files/case_study_two_26_1.png)
+
+#### DistanceFromHome
+
+
+```pdistancefromhome
+sns.barplot(x="DistanceFromHome", y="JobRole", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_28_1.png)
+
+
+```pdistancefromhomewattrition
+sns.barplot(x="DistanceFromHome", y="JobRole", hue= "Attrition", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_29_1.png)
+
+#### NumCompaniesWorked
+
+
+```pnumcompaniesworked
+sns.barplot(x="NumCompaniesWorked", y="JobRole", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_30_1.png)
+
+
+
+```numcompaniesworkedwattrition
+sns.barplot(x="NumCompaniesWorked", y="JobRole", hue="Attrition", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_31_1.png)
+
+#### EnvironmentSatisfaction
+
+
+```penvironmentsatisfaction
+sns.barplotsns.barplot(x="EnvironmentSatisfaction", y="JobRole", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_32_1.png)
+
+
+
+```penvironmentsatisfactionwattrition
+sns.barplot(x="EnvironmentSatisfaction", y="JobRole",hue= "Attrition", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_33_1.png)
+
+
+#### Overtime
+
+
+```povertimeattrition
+sns.countplot(y="OverTime", hue="Attrition", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_34_1.png)
+
+
+
+```pjobroleovertimewattrition
+sns.countplot(y="JobRole", hue="OverTime", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_35_1.png)
+
+#### Age
+
+
+```pageattrition
+sns.barplot(x="Age", y="Attrition", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_36_1.png)
+
+
+
+```pagejobrole
+sns.barplot(x="Age", y="JobRole", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_37_1.png)
+
+
+
+```pagejoberolewattrition
+sns.barplot(x="Age", y="JobRole", hue="Attrition", data=unchanged_attrition_df)
+```
+
+![](case_study_two_files/case_study_two_38_1.png)
